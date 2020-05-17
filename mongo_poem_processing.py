@@ -31,6 +31,7 @@ def format_poem(input_file):
 
     poem = open(input_file, 'r')
 
+    doc['poem_id'] = input_file.replace('.txt')
     doc['poem_title'] = poem.readline().rstrip()
     poem.readline().rstrip() # line that has my name
     doc['poem_date'] = poem.readline().rstrip()
