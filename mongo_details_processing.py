@@ -11,7 +11,7 @@ def main(input_file):
     if os.path.isdir(input_file):
         for dirname, dirs, files in os.walk(input_file):
             for file in files:
-                if file.endswith('.txt'):
+                if file.endswith('_ANNOTATED.txt'):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
                     doc = format_details(dirname + file)
                     mongo_update_details(doc)
