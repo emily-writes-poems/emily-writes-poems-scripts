@@ -1,12 +1,20 @@
 import os
 import sys
 import pymongo
+import re
+from collections import Counter
+
 
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017")
 mongo_db = mongo_client['poems']
 mongo_col = mongo_db['poems-list']
 
-def main(input_file):
+stopwords = []
+
+def main(input_file, stopwords_file = './stopword.txt'):
+    global stopwords
+    stopwords = load_stopwords(stopwords_file)
+
     # directory
     if os.path.isdir(input_file):
         for dirname, dirs, files in os.walk(input_file):
@@ -26,29 +34,53 @@ def main(input_file):
         return
 
 
-def format_details(input_file):
+def format_details(input_file, update_top_words = True, num_words = 5):
     doc = {}
-
-    poem = open(input_file, 'r')
-
     doc['poem_id'] = os.path.basename(input_file).replace('_ANNOTATED.txt', '')
-    poem.readline()  # poem title
-    poem.readline()  # extra newline before 'Title'
-    assert poem.readline().rstrip() == 'Title'  # divider label
-    doc['poem_behind_title'] = poem.readline()
-    poem.readline()  # extra newline before 'Behind the poem'
-    assert poem.readline().rstrip() == 'Behind the poem'  # divider label
-    doc['poem_behind_poem'] = poem.readline().rstrip()
 
-    print(f'DEBUG: annotations for "{doc["poem_id"]}" complete.')
+    with open(input_file, 'r') as f:
+        file_lines = f.readlines()
 
-    return(doc)
+        # Scan in details
+        poem_name = file_lines[0].rstrip()
+        assert file_lines[2].rstrip() == 'Title'  # divider label
+        doc['poem_behind_title'] = file_lines[3].rstrip()
+        assert file_lines[5].rstrip() == 'Behind the poem'  # divider label
+        doc['poem_behind_poem'] = file_lines[6].rstrip()
+
+        if update_top_words: # divider label exists
+            assert file_lines[8] == 'Poem lines\n'
+            # Split by all chars except alphanumeric, dash, apostrophe, single quote (sometimes used as apostrophe)
+            # Remove newlines and filter out blanks
+            poem_words = list(filter(None, re.split("[^\'’\-\w]", ("".join(file_lines[9:])).replace('\n', ' '))))
+            #print(poem_words)
+
+            doc['top_words'] = get_top_words(poem_words, num_words)
+
+    return doc
+
+
+def get_top_words(poem_words, num_words):
+    # Filter out stopwords, convert all words to lowercase
+    poem_words_filtered = [poem_word.lower() for poem_word in poem_words if poem_word.lower() not in stopwords]
+    # Create counter
+    c = Counter(poem_words_filtered)
+    # Return words/freqs if freq > 1
+    top_words = dict([(word, count) for word, count in c.most_common(num_words) if count > 1])
+
+    return top_words
+
+
+def load_stopwords(stopwords_file):
+    with open(stopwords_file) as f:
+        stopwords = [word.strip() for word in f.readlines()]
+    return stopwords
 
 
 def mongo_update_details(doc):
     try:
         mongo_col.find_one_and_update({'poem_id' : doc['poem_id']}, {'$set': doc})
-        print('DEBUG: updated annotations into mongo')
+        print('DEBUG: updated details into mongo')
     except Exception as e:
         print(str(e))
 
