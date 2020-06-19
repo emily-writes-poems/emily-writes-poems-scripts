@@ -13,7 +13,7 @@ def main(input_file):
             for file in files:
                 if file.endswith('.txt'):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
-                    doc = format_poem(dirname + file)
+                    doc = format_poem(os.path.join(dirname, file))
                     mongo_insert_poem(doc)
     # single file
     elif os.path.isfile(input_file):
@@ -53,7 +53,7 @@ def format_poem(input_file):
 
 def mongo_insert_poem(doc):
     try:
-        mongo_col.insert_one(doc)
+        mongo_col.update_one({ 'poem_id' : doc['poem_id'] }, { '$set' :  doc}, upsert=True)
         print('DEBUG: inserted poem into mongo')
     except Exception as e:
         print(str(e))

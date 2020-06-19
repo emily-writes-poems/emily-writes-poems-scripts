@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import sys
 import pymongo
 import re
@@ -11,9 +12,12 @@ mongo_col = mongo_db['poems-list']
 
 stopwords = []
 
-def main(input_file, stopwords_file = './stopword.txt'):
+def main(input_file, stopwords_file = 'stopword.txt'):
+    dirname = str(Path(__file__).parent.absolute())
+    stopwords_file_path = Path(dirname, stopwords_file)
+
     global stopwords
-    stopwords = load_stopwords(stopwords_file)
+    stopwords = load_stopwords(stopwords_file_path)
 
     # directory
     if os.path.isdir(input_file):
@@ -79,7 +83,7 @@ def load_stopwords(stopwords_file):
 
 def mongo_update_details(doc):
     try:
-        mongo_col.find_one_and_update({'poem_id' : doc['poem_id']}, {'$set': doc})
+        mongo_col.find_one_and_update({ 'poem_id' : doc['poem_id'] }, { '$set': doc })
         print('DEBUG: updated details into mongo')
     except Exception as e:
         print(str(e))
