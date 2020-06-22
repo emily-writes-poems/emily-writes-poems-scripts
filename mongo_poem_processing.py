@@ -1,6 +1,8 @@
 import os
+from pathlib import Path
 import sys
 import pymongo
+import similar_poems
 
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017")
 mongo_db = mongo_client['poems']
@@ -15,12 +17,15 @@ def main(input_file):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
                     doc = format_poem(os.path.join(dirname, file))
                     mongo_insert_poem(doc)
+        similar_poems.main(input_file)
+
     # single file
     elif os.path.isfile(input_file):
         if input_file.endswith('.txt'):
             print('DEBUG: Found file: ' + input_file)
-            doc = format_poem(input_file)
-            mongo_insert_poem(doc)
+            #doc = format_poem(input_file)
+            #mongo_insert_poem(doc)
+            similar_poems.main(str(Path(input_file).parent.absolute()))
     else:
         print('DEBUG: No appropriate files found.')
         return

@@ -83,7 +83,7 @@ def load_stopwords(stopwords_file):
 
 def mongo_update_details(doc):
     try:
-        mongo_col.find_one_and_update({ 'poem_id' : doc['poem_id'] }, { '$set': doc })
+        mongo_col.find_one_and_update({ 'poem_id' : doc['poem_id'] }, { '$set' : doc })
         print('DEBUG: updated details into mongo')
     except Exception as e:
         print(str(e))
