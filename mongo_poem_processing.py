@@ -23,8 +23,8 @@ def main(input_file):
     elif os.path.isfile(input_file):
         if input_file.endswith('.txt'):
             print('DEBUG: Found file: ' + input_file)
-            #doc = format_poem(input_file)
-            #mongo_insert_poem(doc)
+            doc = format_poem(input_file)
+            mongo_insert_poem(doc)
             similar_poems.main(str(Path(input_file).parent.absolute()))
     else:
         print('DEBUG: No appropriate files found.')

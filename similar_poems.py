@@ -21,7 +21,7 @@ def load_stopwords(stopwords_file = "stopword.txt"):
     stopwords_file_path = Path(dirname, stopwords_file)
 
     global stopwords
-    with open(stopwords_file) as f:
+    with open(stopwords_file_path) as f:
         stopwords = [word.strip() for word in f.readlines()]
     return stopwords
 
