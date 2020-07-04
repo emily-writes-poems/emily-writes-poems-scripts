@@ -89,21 +89,23 @@ def tfidf_lsi_similarity(poem_titles, poem_documents, poem_ids, bow, dictionary)
 
     for poem_idx, poem_sim in enumerate(index):  # compare all poems to all other poems in corpus
         #print('='*15 + f'{poem_ids[poem_idx]}: \'{poem_titles[poem_idx]}\' ' + '='*15)
-        similar_poems_ids = []
+        similar_poems_ids_and_titles = [[],[]]
 
         sorted_sim = sorted(enumerate(poem_sim), key=lambda item: -item[1])  # sort by highest similarity
         for (sim_poem_idx, sim_value) in sorted_sim[1:4]:
-            similar_poems_ids.append(poem_ids[sim_poem_idx])
+            similar_poems_ids_and_titles[0].append(poem_ids[sim_poem_idx])
+            similar_poems_ids_and_titles[1].append(poem_titles[sim_poem_idx])
             #print(f'{poem_ids[sim_poem_idx]}: \'{poem_titles[sim_poem_idx]}\' {sim_value}')
 
-        top_similar_poems[poem_ids[poem_idx]] = similar_poems_ids
+        top_similar_poems[poem_ids[poem_idx]] = similar_poems_ids_and_titles
 
+    #print(top_similar_poems)
     return top_similar_poems
 
 
 def mongo_update_similar_poems(top_similar_poems):
     for poem_id, similar_poems in top_similar_poems.items():
-        mongo_col.find_one_and_update({ 'poem_id' : poem_id }, { '$set' : { 'similar_poems' : similar_poems } })
+        mongo_col.find_one_and_update({ 'poem_id' : poem_id }, { '$set' : { 'similar_poems_ids' : similar_poems[0], 'similar_poems_titles' : similar_poems[1] } })
 
 
 def main(poems_directory):
