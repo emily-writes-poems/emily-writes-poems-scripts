@@ -1,12 +1,13 @@
 import os
 from pathlib import Path
 import sys
-import pymongo
 import re
 from collections import Counter
 
+import pymongo
+import config
 
-mongo_client = pymongo.MongoClient("mongodb://localhost:27017")
+mongo_client = pymongo.MongoClient(config.CONN_STRING)
 mongo_db = mongo_client['poems']
 mongo_col = mongo_db['poems-list']
 
