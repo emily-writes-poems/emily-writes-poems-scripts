@@ -94,7 +94,7 @@ def tfidf_lsi_similarity(poem_titles, poem_documents, poem_ids, bow, dictionary)
         similar_poems_ids_and_titles = [[],[]]
 
         sorted_sim = sorted(enumerate(poem_sim), key=lambda item: -item[1])  # sort by highest similarity
-        for (sim_poem_idx, sim_value) in sorted_sim[1:4]:
+        for (sim_poem_idx, sim_value) in sorted_sim[1:6]:  # top 5 similar poems
             similar_poems_ids_and_titles[0].append(poem_ids[sim_poem_idx])
             similar_poems_ids_and_titles[1].append(poem_titles[sim_poem_idx])
             #print(f'{poem_ids[sim_poem_idx]}: \'{poem_titles[sim_poem_idx]}\' {sim_value}')
