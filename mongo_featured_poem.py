@@ -8,11 +8,13 @@ import config
 
 mongo_client = pymongo.MongoClient(config.CONN_STRING)
 mongo_db = mongo_client['poems']
-mongo_col = mongo_db['featured']
+feat_mongo_col = mongo_db['featured']
+poems_feat_mongo_col = mongo_db['poems-list']
 
 
 class MongoFeaturedPoemSelector:
     def __init__(self, app_root):
+        # Skeleton set up
         self.root = app_root
         self.frame = tk.Frame(self.root)
         self.frame.title('Select a feature.')
@@ -22,8 +24,12 @@ class MongoFeaturedPoemSelector:
                           'Poem Title',
                           'Featured Text')
         self.tree = ttk.Treeview(self.frame)
+        # Data from Mongo
         self.all_featured = []
+        self.all_poems = []
+        # Populate with data
         self.setup_tree()
+        self.fetch_poems()
 
 
     def destroy(self):
@@ -85,6 +91,7 @@ class MongoFeaturedPoemSelector:
             # Get double-clicked feature
             selected_row = int(self.tree.selection()[0])
             selected_feature = self.all_featured[selected_row]
+
             # Open new window with feature data
             window_expand_feature_data = tk.Toplevel(self.root)
             window_expand_feature_data.title('Feature for "' + selected_feature[2] + '"')
@@ -92,15 +99,15 @@ class MongoFeaturedPoemSelector:
             parent_expand_feature_data = tk.Frame(window_expand_feature_data)
             parent_expand_feature_data.pack(expand=True)
 
-            label_feature_text = tk.Label(parent_expand_feature_data, text = selected_feature[4], wraplength=500)
-            label_feature_text.pack(padx=(20,20))
+            label_featured_text = tk.Label(parent_expand_feature_data, text = selected_feature[4], wraplength=500)
+            label_featured_text.pack(padx=(20,20))
 
             window_expand_feature_data.minsize(500, 100)
             window_expand_feature_data.mainloop()
 
 
     def mongo_get_featured_all(self):
-        all_featured_raw = list(mongo_col.find())
+        all_featured_raw = list(feat_mongo_col.find())
         for record in all_featured_raw:
             feature = (record['_id'],
                        u'\u2713' if record['currently_featured'] else '',
@@ -113,11 +120,14 @@ class MongoFeaturedPoemSelector:
     def mongo_set_feature(self):
         if self.tree.selection():
             # Remove current feature
-            mongo_col.find_one_and_update( { 'currently_featured' : True }, { '$set' : { 'currently_featured' : False }  } )
+            feat_mongo_col.find_one_and_update( { 'currently_featured' : True },
+                                                { '$set' : { 'currently_featured' : False }  } )
+
             # Set selected feature
             selected_row = int(self.tree.selection()[0])
             selected_feature = self.all_featured[selected_row]
-            mongo_col.find_one_and_update( { '_id' : selected_feature[0] }, { '$set' : { 'currently_featured' : True } } )
+            feat_mongo_col.find_one_and_update( { '_id' : selected_feature[0] },
+                                                { '$set' : { 'currently_featured' : True } } )
             self.refresh_data()
 
 
@@ -152,31 +162,31 @@ class MongoInsertNewFeature:
         poem_title_entry.pack(side=tk.RIGHT, expand=True)
 
         # Input textbox for feature text
-        feature_text_row = tk.Frame(self.frame)
-        feature_text_row.pack(side=tk.TOP, padx=5, pady=5)
-        feature_text_label = tk.Label(feature_text_row, text='Featured Text', anchor='w')
-        feature_text_label.pack(side=tk.LEFT)
-        feature_text_textbox = tk.Text(feature_text_row, height=10)
-        feature_text_textbox.pack(side=tk.RIGHT, expand=True)
+        featured_text_row = tk.Frame(self.frame)
+        featured_text_row.pack(side=tk.TOP, padx=5, pady=5)
+        featured_text_label = tk.Label(featured_text_row, text='Featured Text', anchor='w')
+        featured_text_label.pack(side=tk.LEFT)
+        featured_text_textbox = tk.Text(featured_text_row, height=10)
+        featured_text_textbox.pack(side=tk.RIGHT, expand=True)
 
         # Checkbox for setting as current feature in Mongo
-        set_feature = False
+        set_feature = tk.BooleanVar()
         check_current_feature = tk.Checkbutton(self.frame, text='Set as current feature', variable=set_feature, onvalue=True, offvalue=False)
         check_current_feature.pack()
 
 
-        def get_entries_to_insert():
-            self.mongo_insert_new_feature(poem_id_entry.get(), poem_title_entry.get(), feature_text_textbox.get('1.0', 'end-1c'), set_feature)
+        def get_entries_to_insert():  # passes input values to function to insert new feature into Mongo
+            self.mongo_insert_new_feature(poem_id_entry.get(), poem_title_entry.get(), featured_text_textbox.get('1.0', 'end-1c'), set_feature.get())
 
         # Submit button
         submit_button = tk.Button(self.frame, text='Submit new feature', command=get_entries_to_insert)
         submit_button.pack()
 
 
-        def clear_form():
+        def clear_form():  # clears all input boxes
             poem_id_entry.delete(0, 'end')
             poem_title_entry.delete(0, 'end')
-            feature_text_textbox.delete('1.0', 'end')
+            featured_text_textbox.delete('1.0', 'end')
             check_current_feature.deselect()
 
         # Clear form
@@ -184,8 +194,20 @@ class MongoInsertNewFeature:
         clear_button.pack()
 
 
-    def mongo_insert_new_feature(self, poem_id, poem_title, feature_text, set_feature):
-        print (poem_id, poem_title, feature_text, set_feature)
+    def mongo_insert_new_feature(self, poem_id, poem_title, featured_text, set_feature):
+        if not all([poem_id, poem_title, featured_text]):  # missing at least one of the required fields
+            print('missing input')
+            return
+
+        feature_dict = {'poem_id' : poem_id,
+                        'poem_title' : poem_title,
+                        'featured_text' : featured_text}
+        if set_feature:  # remove current feature, then insert new feature and set as current feature
+            feat_mongo_col.find_one_and_update( { 'currently_featured' : True }, { '$set' : { 'currently_featured' : False }  } )
+            feature_dict['currently_featured'] = True
+            feat_mongo_col.insert_one(feature_dict)
+        else:  # just insert new feature
+            feat_mongo_col.insert_one(feature_dict)
 
 
 def main():
