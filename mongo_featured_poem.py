@@ -16,8 +16,8 @@ class MongoFeaturedPoemSelector:
     def __init__(self, app_root):
         # Skeleton set up
         self.root = app_root
+        self.root.title('Select a feature.')
         self.frame = tk.Frame(self.root)
-        self.frame.title('Select a feature.')
         self.frame.pack(expand=True)
         self.col_names = (u'\u2713',
                           'Poem ID',
@@ -29,7 +29,7 @@ class MongoFeaturedPoemSelector:
         self.all_poems = []
         # Populate with data
         self.setup_tree()
-        self.fetch_poems()
+        #self.fetch_poems()
 
 
     def destroy(self):
@@ -59,7 +59,7 @@ class MongoFeaturedPoemSelector:
         self.tree.column('#4', width=600)
 
         # Button that will trigger mongo update for current feature
-        select_button = tk.Button(self.frame, text="Set as feature.", command=self.mongo_set_feature)
+        select_button = tk.Button(self.frame, text='Set as feature.', command=self.mongo_set_current_feature)
         select_button.pack()
 
         # Bind double clicks on a row to expand feature data
@@ -90,17 +90,46 @@ class MongoFeaturedPoemSelector:
         if self.tree.selection():
             # Get double-clicked feature
             selected_row = int(self.tree.selection()[0])
-            selected_feature = self.all_featured[selected_row]
+            (_, _, selected_poem_id, selected_poem_title, selected_featured_text) = self.all_featured[selected_row]
 
             # Open new window with feature data
             window_expand_feature_data = tk.Toplevel(self.root)
-            window_expand_feature_data.title('Feature for "' + selected_feature[2] + '"')
+            window_expand_feature_data.title('Feature for "' + selected_poem_title + '"' + ' (poem_id: ' + selected_poem_id + ')')
+            window_expand_feature_data.resizable(False, False)
+            window_expand_feature_data.grab_set()
 
             parent_expand_feature_data = tk.Frame(window_expand_feature_data)
             parent_expand_feature_data.pack(expand=True)
 
-            label_featured_text = tk.Label(parent_expand_feature_data, text = selected_feature[4], wraplength=500)
-            label_featured_text.pack(padx=(20,20))
+            text_featured_text = tk.Text(parent_expand_feature_data, width=50, height=15, wrap='word')
+            text_featured_text.insert('1.0', selected_featured_text)
+            text_featured_text.pack(padx=20, pady=5)
+            text_featured_text['state'] = 'disabled'
+
+            # Buttons for edit, cancel, and save text
+            def allow_edit():  # Make text editable and set focus to text box
+                text_featured_text['state'] = 'normal'
+                text_featured_text.focus_set()
+
+            edit_feature_text_button = tk.Button(parent_expand_feature_data, text='Edit text', command=allow_edit)
+            edit_feature_text_button.pack()
+
+
+            def disable_edit():  # Disable text editing and remove focus from text box
+                text_featured_text['state'] = 'disabled'
+                parent_expand_feature_data.focus_set()
+
+            exit_cancel_edit_button = tk.Button(parent_expand_feature_data, text='Cancel editing', command=disable_edit)
+            exit_cancel_edit_button.pack()
+
+
+            def save_edit():  # Save changes to Mongo, then disable text editing
+                self.mongo_edit_feature_text(selected_poem_id, text_featured_text.get('1.0', 'end-1c'))
+                disable_edit()
+
+            save_feature_text_button = tk.Button(parent_expand_feature_data, text='Save text', command=save_edit)
+            save_feature_text_button.pack()
+
 
             window_expand_feature_data.minsize(500, 100)
             window_expand_feature_data.mainloop()
@@ -117,7 +146,7 @@ class MongoFeaturedPoemSelector:
             self.all_featured.append(feature)
 
 
-    def mongo_set_feature(self):
+    def mongo_set_current_feature(self):
         if self.tree.selection():
             # Remove current feature
             feat_mongo_col.find_one_and_update( { 'currently_featured' : True },
@@ -131,11 +160,16 @@ class MongoFeaturedPoemSelector:
             self.refresh_data()
 
 
+    def mongo_edit_feature_text(self, poem_id, featured_text):
+        feat_mongo_col.find_one_and_update( { 'poem_id' : poem_id },
+                                            { '$set' : { 'featured_text' : featured_text } } )
+
+
 class MongoInsertNewFeature:
     def __init__(self, app_root):
         self.root = app_root
-        self.frame = tk.Frame(self.root)
         self.root.title('Insert new feature into database.')
+        self.frame = tk.Frame(self.root)
         self.frame.pack(expand=True)
         self.create_form()
 
@@ -170,13 +204,13 @@ class MongoInsertNewFeature:
         featured_text_textbox.pack(side=tk.RIGHT, expand=True)
 
         # Checkbox for setting as current feature in Mongo
-        set_feature = tk.BooleanVar()
-        check_current_feature = tk.Checkbutton(self.frame, text='Set as current feature', variable=set_feature, onvalue=True, offvalue=False)
+        set_current_feature = tk.BooleanVar()
+        check_current_feature = tk.Checkbutton(self.frame, text='Set as current feature', variable=set_current_feature, onvalue=True, offvalue=False)
         check_current_feature.pack()
 
 
         def get_entries_to_insert():  # passes input values to function to insert new feature into Mongo
-            self.mongo_insert_new_feature(poem_id_entry.get(), poem_title_entry.get(), featured_text_textbox.get('1.0', 'end-1c'), set_feature.get())
+            self.mongo_insert_new_feature(poem_id_entry.get(), poem_title_entry.get(), featured_text_textbox.get('1.0', 'end-1c'), set_current_feature.get())
 
         # Submit button
         submit_button = tk.Button(self.frame, text='Submit new feature', command=get_entries_to_insert)
@@ -194,7 +228,7 @@ class MongoInsertNewFeature:
         clear_button.pack()
 
 
-    def mongo_insert_new_feature(self, poem_id, poem_title, featured_text, set_feature):
+    def mongo_insert_new_feature(self, poem_id, poem_title, featured_text, set_current_feature):
         if not all([poem_id, poem_title, featured_text]):  # missing at least one of the required fields
             print('missing input')
             return
@@ -202,7 +236,8 @@ class MongoInsertNewFeature:
         feature_dict = {'poem_id' : poem_id,
                         'poem_title' : poem_title,
                         'featured_text' : featured_text}
-        if set_feature:  # remove current feature, then insert new feature and set as current feature
+
+        if set_current_feature:  # remove current feature, then insert new feature and set as current feature
             feat_mongo_col.find_one_and_update( { 'currently_featured' : True }, { '$set' : { 'currently_featured' : False }  } )
             feature_dict['currently_featured'] = True
             feat_mongo_col.insert_one(feature_dict)
@@ -212,8 +247,9 @@ class MongoInsertNewFeature:
 
 def main():
     app_root = tk.Tk()
-    #FeatureSelector = MongoFeaturedPoemSelector(app_root)
-    InsertNewFeature = MongoInsertNewFeature(app_root)
+    app_root.resizable(False, False)
+    FeatureSelector = MongoFeaturedPoemSelector(app_root)
+    #InsertNewFeature = MongoInsertNewFeature(app_root)
     app_root.mainloop()
 
 
