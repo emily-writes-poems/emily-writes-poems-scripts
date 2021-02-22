@@ -14,10 +14,13 @@ poems_feat_mongo_col = mongo_db['poems-list']
 
 class MongoFeaturedPoemSelector:
     def __init__(self, app_root):
-        # Skeleton set up
         self.root = app_root
+
+
+    def start(self):
         self.root.title('Select a feature.')
-        self.frame = tk.Frame(self.root)
+        self.window = tk.Toplevel(self.root)
+        self.frame = tk.Frame(self.window)
         self.frame.pack(expand=True)
         self.col_names = (u'\u2713',
                           'Poem ID',
@@ -27,21 +30,18 @@ class MongoFeaturedPoemSelector:
         # Data from Mongo
         self.all_featured = []
         self.all_poems = []
-        # Populate with data
-        self.setup_tree()
+        self.setup()
         #self.fetch_poems()
 
 
-    def destroy(self):
-        self.frame.destroy()
-
-
-    def setup_tree(self):
-        self.construct_tree()
+    def setup(self):
+        self.construct_frame()
         self.insert_data()
+        self.window.grab_set()
 
 
-    def construct_tree(self):
+    def construct_frame(self):
+        # Setting up the tree's display
         self.tree["columns"] = self.col_names
         self.tree["show"] = 'headings'
         self.tree["selectmode"] = 'browse'
@@ -58,12 +58,12 @@ class MongoFeaturedPoemSelector:
         self.tree.column('#3', width=150)
         self.tree.column('#4', width=600)
 
+        # Bind double clicks on a row to expand feature data
+        self.tree.bind("<Double-Button-1>", self.expand_feature_data)
+
         # Button that will trigger mongo update for current feature
         select_button = tk.Button(self.frame, text='Set as feature.', command=self.mongo_set_current_feature)
         select_button.pack()
-
-        # Bind double clicks on a row to expand feature data
-        self.tree.bind("<Double-Button-1>", self.expand_feature_data)
 
 
     def wrap(self, string, length):
@@ -93,7 +93,7 @@ class MongoFeaturedPoemSelector:
             (_, _, selected_poem_id, selected_poem_title, selected_featured_text) = self.all_featured[selected_row]
 
             # Open new window with feature data
-            window_expand_feature_data = tk.Toplevel(self.root)
+            window_expand_feature_data = tk.Toplevel(self.window)
             window_expand_feature_data.title('Feature for "' + selected_poem_title + '"' + ' (poem_id: ' + selected_poem_id + ')')
             window_expand_feature_data.resizable(False, False)
             window_expand_feature_data.grab_set()
@@ -168,17 +168,18 @@ class MongoFeaturedPoemSelector:
 class MongoInsertNewFeature:
     def __init__(self, app_root):
         self.root = app_root
+
+
+    def start(self):
         self.root.title('Insert new feature into database.')
-        self.frame = tk.Frame(self.root)
+        self.window = tk.Toplevel(self.root)
+        self.frame = tk.Frame(self.window)
         self.frame.pack(expand=True)
-        self.create_form()
+        self.setup_form()
+        self.window.grab_set()
 
 
-    def destroy(self):
-        self.frame.destroy()
-
-
-    def create_form(self):
+    def setup_form(self):
         # Input for poem id
         poem_id_row = tk.Frame(self.frame)
         poem_id_row.pack(side=tk.TOP, padx=5, pady=5)
@@ -245,12 +246,33 @@ class MongoInsertNewFeature:
             feat_mongo_col.insert_one(feature_dict)
 
 
+class MongoFeatureAppController:
+    def __init__(self):
+        self.app_root = tk.Tk()
+        self.frame = tk.Frame()
+        self.frame.pack(expand=True)
+        self.FeatureSelector = MongoFeaturedPoemSelector(self.app_root)
+        self.InsertNewFeature = MongoInsertNewFeature(self.app_root)
+        self.setup_app()
+        self.run_app()
+
+
+    def setup_app(self):
+        self.app_root.resizable(False, False)
+
+        feature_selector_button = tk.Button(self.frame, text="Select feature for emily-writes-poems", command=self.FeatureSelector.start)
+        feature_selector_button.pack()
+
+        insert_feature_button = tk.Button(self.frame, text="Create new feature for emily-writes-poems", command=self.InsertNewFeature.start)
+        insert_feature_button.pack()
+
+
+    def run_app(self):
+        self.app_root.mainloop()
+
+
 def main():
-    app_root = tk.Tk()
-    app_root.resizable(False, False)
-    FeatureSelector = MongoFeaturedPoemSelector(app_root)
-    #InsertNewFeature = MongoInsertNewFeature(app_root)
-    app_root.mainloop()
+    mongo_feature_app = MongoFeatureAppController()
 
 
 if __name__ == '__main__':
