@@ -98,13 +98,20 @@ class MongoFeaturedPoemSelector:
             window_expand_feature_data.resizable(False, False)
             window_expand_feature_data.grab_set()
 
+            ## Create frame to hold widgets
             parent_expand_feature_data = tk.Frame(window_expand_feature_data)
-            parent_expand_feature_data.pack(expand=True)
+            parent_expand_feature_data.pack(padx=20, pady=20)
 
+            ## Editable text box for featured text
             text_featured_text = tk.Text(parent_expand_feature_data, width=50, height=15, wrap='word')
             text_featured_text.insert('1.0', selected_featured_text)
             text_featured_text.pack(padx=20, pady=5)
             text_featured_text['state'] = 'disabled'
+
+            ## Label for providing notification to user
+            label_notification = tk.Label(parent_expand_feature_data, text='')
+            label_notification.pack()
+
 
             # Buttons for edit, cancel, and save text
             def allow_edit():  # Make text editable and set focus to text box
@@ -123,9 +130,15 @@ class MongoFeaturedPoemSelector:
             exit_cancel_edit_button.pack()
 
 
+            def notify_save_success():  # Display text in window confirming that save worked
+                label_notification.config(text='Changes saved successfully.')
+                label_notification.after(1500, lambda: label_notification.config(text=''))
+
+
             def save_edit():  # Save changes to Mongo, then disable text editing
                 self.mongo_edit_feature_text(selected_poem_id, text_featured_text.get('1.0', 'end-1c'))
                 disable_edit()
+                notify_save_success()
 
             save_feature_text_button = tk.Button(parent_expand_feature_data, text='Save text', command=save_edit)
             save_feature_text_button.pack()
