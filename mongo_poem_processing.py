@@ -53,8 +53,8 @@ def format_poem(input_file):
     doc['poem_linecount'] = len(poem_text)
     doc['poem_wordcount'] = sum(len(line.split()) for line in poem_text)
 
-    print(f'DEBUG: formatting "{doc["poem_title"]}" complete.')
     print(doc)
+    print(f'DEBUG: formatting "{doc["poem_title"]}" complete.')
 
     return(doc)
 
@@ -68,4 +68,7 @@ def mongo_insert_poem(doc):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    if len(sys.argv) < 2:
+        sys.exit("Please provide a file.")
+    else:
+        main(sys.argv[1])

@@ -30,10 +30,13 @@ def main(input_file, stopwords_file = 'stopword.txt'):
                     mongo_update_details(doc)
     # single file
     elif os.path.isfile(input_file):
-        if input_file.endswith('.txt'):
+        if input_file.endswith('_ANNOTATED.txt'):
             print('DEBUG: Found file: ' + input_file)
             doc = format_details(input_file)
             mongo_update_details(doc)
+        else:
+            print('DEBUG: No appropriate files found.')
+            return
     else:
         print('DEBUG: No appropriate files found.')
         return

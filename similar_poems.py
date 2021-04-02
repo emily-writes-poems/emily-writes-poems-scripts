@@ -107,11 +107,12 @@ def tfidf_lsi_similarity(poem_titles, poem_documents, poem_ids, bow, dictionary)
 
 def mongo_update_similar_poems(top_similar_poems):
     for poem_id, similar_poems in top_similar_poems.items():
-        print(f'{poem_id} : {similar_poems}')
+        # print(f'{poem_id} : {similar_poems}')
         mongo_col.find_one_and_update({ 'poem_id' : poem_id }, { '$set' : { 'similar_poems_ids' : similar_poems[0], 'similar_poems_titles' : similar_poems[1] } })
 
 
 def main(poems_directory):
+    print('DEBUG: Processing similar poems.')
     load_stopwords()
 
     poem_titles, poem_documents, poem_ids = get_processed_poems(poems_directory)
@@ -124,7 +125,7 @@ def main(poems_directory):
 
     mongo_update_similar_poems(top_similar_poems)
 
-    print('DEBUG: Finished running similar_poems.py')
+    print('DEBUG: Finished processing and updating similar poems.')
 
 
 if __name__ == '__main__':
