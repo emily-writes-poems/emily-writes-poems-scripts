@@ -3,8 +3,6 @@ import tkinter.ttk as ttk
 from tkinter import font
 from tkmacosx import Button
 
-from functools import partial
-
 import pymongo
 import config
 
@@ -19,7 +17,6 @@ class MongoFeaturedPoemSelector:
         self.root = app_root
 
     def start(self):
-        self.root.title('Select a feature.')
         self.window = tk.Toplevel(self.root)
         self.frame = tk.Frame(self.window)
         self.frame.pack(expand=True)
@@ -219,7 +216,6 @@ class MongoInsertNewFeature:
 
 
     def start(self):
-        self.root.title('Insert new feature into database.')
         self.window = tk.Toplevel(self.root)
         self.frame = tk.Frame(self.window)
         self.frame.pack(expand=True)
