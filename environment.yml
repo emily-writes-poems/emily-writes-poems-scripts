@@ -1,8 +1,0 @@
-name: ewp_conda
-dependencies:
-  - python=3.7
-  - gensim
-  - dnspython
-  - pymongo
-  - pip:
-      - tkmacosx
