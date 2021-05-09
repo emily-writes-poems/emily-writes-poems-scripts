@@ -20,7 +20,7 @@ def main(input_file):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
                     doc = format_poem(os.path.join(dirname, file))
                     mongo_insert_poem(doc)
-        #similar_poems.main(input_file)
+        similar_poems.main(input_file)
 
     # single file
     elif os.path.isfile(input_file):
@@ -28,7 +28,7 @@ def main(input_file):
             print('DEBUG: Found file: ' + input_file)
             doc = format_poem(input_file)
             mongo_insert_poem(doc)
-            #similar_poems.main(str(Path(input_file).parent.absolute()))
+            similar_poems.main(str(Path(input_file).parent.absolute()))
     else:
         print('DEBUG: No appropriate files found.')
         return
