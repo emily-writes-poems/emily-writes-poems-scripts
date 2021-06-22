@@ -26,7 +26,7 @@ def main(input_file, stopwords_file = 'stopword.txt'):
             for file in files:
                 if file.endswith('_ANNOTATED.txt'):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
-                    doc = format_details(dirname + file)
+                    doc = format_details(dirname + '/' + file)
                     mongo_update_details(doc)
     # single file
     elif os.path.isfile(input_file):

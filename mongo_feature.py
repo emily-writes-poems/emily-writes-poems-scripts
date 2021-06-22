@@ -13,12 +13,13 @@ def main(poem_id, feature_text, set_current):
     try:
         poem_title = poems_mongo_col.find_one( { 'poem_id' : poem_id } )['poem_title']
     except:
-        print("poem id was not found: " + poem_id)
-        return
+        sys.exit("poem id was not found: " + poem_id)
 
-    feature_dict = {'poem_id' : poem_id,
+    feature_dict = {
+                    'poem_id' : poem_id,
                     'poem_title' : poem_title,
-                    'featured_text' : feature_text}
+                    'featured_text' : feature_text
+                   }
 
     if set_current == 'true':  # remove current feature, then insert new feature and set as current feature
         feat_mongo_col.find_one_and_update( { 'currently_featured' : True }, { '$set' : { 'currently_featured' : False }  } )
