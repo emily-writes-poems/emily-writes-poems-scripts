@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 import sys
+
+from utils import error_exit
 import similar_poems
 
 import pymongo
@@ -16,7 +18,7 @@ def main(input_file):
     if os.path.isdir(input_file):
         for dirname, dirs, files in os.walk(input_file):
             for file in files:
-                if file.endswith('.txt'):
+                if file.endswith('.txt') and not file.endswith('_ANNOTATED.txt'):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
                     doc = format_poem(os.path.join(dirname, file))
                     mongo_insert_poem(doc)
@@ -24,14 +26,16 @@ def main(input_file):
 
     # single file
     elif os.path.isfile(input_file):
+        if input_file.endswith('_ANNOTATED.txt'):
+            error_exit("This is a details file!")
         if input_file.endswith('.txt'):
             print('DEBUG: Found file: ' + input_file)
             doc = format_poem(input_file)
-            mongo_insert_poem(doc)
-            similar_poems.main(str(Path(input_file).parent.absolute()))
+            ret = mongo_insert_poem(doc)
+            if ret == 0:
+                similar_poems.main(str(Path(input_file).parent.absolute()))
     else:
-        print('DEBUG: No appropriate files found.')
-        return
+        error_exit("No appropriate file was found!")
 
 
 def format_poem(input_file):
@@ -63,12 +67,14 @@ def mongo_insert_poem(doc):
     try:
         mongo_col.update_one({ 'poem_id' : doc['poem_id'] }, { '$set' :  doc}, upsert=True)
         print('DEBUG: inserted poem into mongo')
+        return 0
     except Exception as e:
         print(str(e))
+        return -1
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        sys.exit("Please provide a file.")
+        error_exit("Please provide a file.")
     else:
         main(sys.argv[1])

@@ -4,6 +4,8 @@ import sys
 import re
 from collections import Counter
 
+from utils import error_exit
+
 import pymongo
 import config
 
@@ -35,11 +37,9 @@ def main(input_file, stopwords_file = 'stopword.txt'):
             doc = format_details(input_file)
             mongo_update_details(doc)
         else:
-            print('DEBUG: No appropriate files found.')
-            return
+            error_exit('No appropriate files found!')
     else:
-        print('DEBUG: No appropriate files found.')
-        return
+        error_exit('No appropriate files found!')
 
 
 def format_details(input_file, update_top_words = True, num_words = 5):
@@ -51,13 +51,16 @@ def format_details(input_file, update_top_words = True, num_words = 5):
 
         # Scan in details
         poem_name = file_lines[0].rstrip()
-        assert file_lines[2].rstrip() == 'Title'  # divider label
+        if file_lines[2].rstrip() != 'Title': # divider label
+            error_exit('Incorrect details file formatting')
         doc['poem_behind_title'] = file_lines[3].rstrip()
-        assert file_lines[5].rstrip() == 'Behind the poem'  # divider label
+        if file_lines[5].rstrip() != 'Behind the poem': # divider label
+            error_exit('Incorrect details file formatting')
         doc['poem_behind_poem'] = file_lines[6].rstrip()
 
         if update_top_words: # divider label exists
-            assert file_lines[8] == 'Poem lines\n'
+            if file_lines[8] != 'Poem lines\n':
+                error_exit('Incorrect details file formatting')
             # Split by all chars except alphanumeric, dash, apostrophe, single quote (sometimes used as apostrophe)
             # Remove newlines and filter out blanks
             poem_words = list(filter(None, re.split("[^\'’\-\w]", ("".join(file_lines[9:])).replace('\n', ' '))))

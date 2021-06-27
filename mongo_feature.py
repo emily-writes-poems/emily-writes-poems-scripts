@@ -2,6 +2,8 @@ import sys
 import pymongo
 import config
 
+from utils import error_exit
+
 mongo_client = pymongo.MongoClient(config.CONN_STRING)
 mongo_db = mongo_client['poems']
 feat_mongo_col = mongo_db['featured']
@@ -9,11 +11,10 @@ poems_mongo_col = mongo_db['poems-list']
 
 
 def main(poem_id, feature_text, set_current):
-    # find poem title from poem_id
-    try:
+    try: # find poem title from poem_id
         poem_title = poems_mongo_col.find_one( { 'poem_id' : poem_id } )['poem_title']
     except:
-        sys.exit("poem id was not found: " + poem_id)
+        error_exit('Poem id was not found: ' + poem_id)
 
     feature_dict = {
                     'poem_id' : poem_id,
@@ -37,6 +38,6 @@ def main(poem_id, feature_text, set_current):
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        sys.exit("Please provide poem id, feature text, and if you'd like to set this as the current feature.")
+        error_exit('Please provide poem id, feature text, and if you\'d like to set this as the current feature.')
     else:
         main(sys.argv[1], sys.argv[2], sys.argv[3])
