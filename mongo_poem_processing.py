@@ -58,14 +58,14 @@ def format_poem(input_file):
     doc['poem_wordcount'] = sum(len(line.split()) for line in poem_text)
 
     print(doc)
-    print(f'DEBUG: formatting "{doc["poem_title"]}" complete.')
+    print(f'DEBUG: formatting "{doc['poem_title']}" complete.')
 
     return(doc)
 
 
 def mongo_insert_poem(doc):
     try:
-        mongo_col.update_one({ 'poem_id' : doc['poem_id'] }, { '$set' :  doc}, upsert=True)
+        mongo_col.update_one( { "poem_id" : doc['poem_id'] }, { '$set' :  doc}, upsert=True )
         print('DEBUG: inserted poem into mongo')
         return 0
     except Exception as e:

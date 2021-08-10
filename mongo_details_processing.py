@@ -43,8 +43,15 @@ def main(input_file, stopwords_file = 'stopword.txt'):
 
 
 def format_details(input_file, update_top_words = True, num_words = 5):
+    poem_id = os.path.basename(input_file).replace('_ANNOTATED.txt', '')
+
+    # check that the poem_id exists in the DB
+    poem_doc = mongo_col.find_one( { "poem_id" : poem_id } )
+    if poem_doc is None:
+        error_exit('Poem id was not found: ' + poem_id)
+
     doc = {}
-    doc['poem_id'] = os.path.basename(input_file).replace('_ANNOTATED.txt', '')
+    doc['poem_id'] = poem_id
 
     with open(input_file, 'r') as f:
         file_lines = f.readlines()
@@ -52,15 +59,15 @@ def format_details(input_file, update_top_words = True, num_words = 5):
         # Scan in details
         poem_name = file_lines[0].rstrip()
         if file_lines[2].rstrip() != 'Title': # divider label
-            error_exit('Incorrect details file formatting')
+            error_exit('Incorrect details file formatting at title divider')
         doc['poem_behind_title'] = file_lines[3].rstrip()
         if file_lines[5].rstrip() != 'Behind the poem': # divider label
-            error_exit('Incorrect details file formatting')
+            error_exit('Incorrect details file formatting at behind the poem divider')
         doc['poem_behind_poem'] = file_lines[6].rstrip()
 
-        if update_top_words: # divider label exists
-            if file_lines[8] != 'Poem lines\n':
-                error_exit('Incorrect details file formatting')
+        if update_top_words: # want to parse poem lines to update top words
+            if file_lines[8] != 'Poem lines\n': # divider label
+                error_exit('Incorrect details file formatting at poem lines divider')
             # Split by all chars except alphanumeric, dash, apostrophe, single quote (sometimes used as apostrophe)
             # Remove newlines and filter out blanks
             poem_words = list(filter(None, re.split("[^\'’\-\w]", ("".join(file_lines[9:])).replace('\n', ' '))))
@@ -90,7 +97,7 @@ def load_stopwords(stopwords_file):
 
 def mongo_update_details(doc):
     try:
-        mongo_col.find_one_and_update({ 'poem_id' : doc['poem_id'] }, { '$set' : doc })
+        mongo_col.find_one_and_update( { "poem_id" : doc['poem_id'] }, { '$set' : doc } )
         print('DEBUG: updated details into mongo')
     except Exception as e:
         print(str(e))
