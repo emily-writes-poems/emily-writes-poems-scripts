@@ -58,7 +58,7 @@ def format_poem(input_file):
     doc['poem_wordcount'] = sum(len(line.split()) for line in poem_text)
 
     print(doc)
-    print(f'DEBUG: formatting "{doc['poem_title']}" complete.')
+    print(f'DEBUG: formatting "{doc["poem_title"]}" complete.')
 
     return(doc)
 

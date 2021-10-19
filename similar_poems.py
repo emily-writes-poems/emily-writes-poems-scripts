@@ -35,10 +35,10 @@ def lowercase_and_remove_stopwords(text):
 
 def get_processed_poems(poem_dir):
     poem_file_paths = []
-    for root, dirs, files in os.walk(poem_dir):
+    with os.scandir(poem_dir) as files:
         for file in files:
-            if file.endswith('.txt') and not file.endswith('_ANNOTATED.txt'):
-                poem_file_paths.append(os.path.join(root, file))
+            if file.name.endswith('.txt') and not file.name.endswith('_ANNOTATED.txt'):
+                poem_file_paths.append(os.path.join(poem_dir, file.name))
 
     poem_documents = []  # title + text as list of words, filtered (lowercase, removed stopwords)
     poem_titles = []  # poem titles
