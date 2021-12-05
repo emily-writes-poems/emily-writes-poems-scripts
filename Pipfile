@@ -5,9 +5,11 @@ name = "pypi"
 
 [packages]
 dnspython = "*"
-pymongo = "*"
-gensim = "*"
 python-levenshtein = "*"
+pymongo = "*"
+numpy = "*"
+gensim = "*"
+scipy = "*"
 
 [dev-packages]
 
