@@ -10,8 +10,8 @@ import pymongo
 import config
 
 mongo_client = pymongo.MongoClient(config.CONN_STRING)
-mongo_db = mongo_client['poems']
-mongo_col = mongo_db['poems-list']
+mongo_db = mongo_client[config.MONGO_DB]
+mongo_col = mongo_db[config.MONGO_POEMS_COLL]
 
 stopwords = []
 
@@ -29,13 +29,15 @@ def main(input_file, stopwords_file = 'stopword.txt'):
                 if file.endswith('_ANNOTATED.txt'):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
                     doc = format_details(dirname + '/' + file)
-                    mongo_update_details(doc)
+                    if doc:
+                        mongo_update_details(doc)
     # single file
     elif os.path.isfile(input_file):
         if input_file.endswith('_ANNOTATED.txt'):
             print('DEBUG: Found file: ' + input_file)
             doc = format_details(input_file)
-            mongo_update_details(doc)
+            if doc:
+                mongo_update_details(doc)
         else:
             error_exit('No appropriate files found!')
     else:
@@ -48,7 +50,8 @@ def format_details(input_file, update_top_words = True, num_words = 5):
     # check that the poem_id exists in the DB
     poem_doc = mongo_col.find_one( { "poem_id" : poem_id } )
     if poem_doc is None:
-        error_exit('Poem id was not found: ' + poem_id)
+        print('Poem id was not found: ' + poem_id)
+        return False
 
     doc = {}
     doc['poem_id'] = poem_id
@@ -80,7 +83,7 @@ def format_details(input_file, update_top_words = True, num_words = 5):
 
 def get_top_words(poem_words, num_words):
     # Filter out stopwords, convert all words to lowercase
-    poem_words_filtered = [poem_word.lower() for poem_word in poem_words if poem_word.lower() not in stopwords]
+    poem_words_filtered = [poem_word.lower() for poem_word in poem_words if poem_word.lower() not in stopwords and len(poem_word) > 1]
     # Create counter
     c = Counter(poem_words_filtered)
     # Return words/freqs if freq > 1

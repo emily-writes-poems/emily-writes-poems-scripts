@@ -9,8 +9,8 @@ import pymongo
 import config
 
 mongo_client = pymongo.MongoClient(config.CONN_STRING)
-mongo_db = mongo_client['poems']
-mongo_col = mongo_db['poems-list']
+mongo_db = mongo_client[config.MONGO_DB]
+mongo_col = mongo_db[config.MONGO_POEMS_COLL]
 
 
 def main(input_file):

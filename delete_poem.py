@@ -9,22 +9,13 @@ import pymongo
 import config
 
 mongo_client = pymongo.MongoClient(config.CONN_STRING)
-mongo_db = mongo_client['poems']
-feat_mongo_col = mongo_db['featured']
-poems_mongo_col = mongo_db['poems-list']
-collections_mongo_col = mongo_db['poem-collections-list']
+mongo_db = mongo_client[config.MONGO_DB]
+feat_mongo_col = mongo_db[config.MONGO_FEATS_COLL]
+poems_mongo_col = mongo_db[config.MONGO_POEMS_COLL]
+collections_mongo_col = mongo_db[config.MONGO_POEMCOLLS_COLL]
 
 
-def find_in_mongo(poem_id, mongo_collection, search_field, return_field):
-    ret = []
-
-    for result in mongo_collection.find( { search_field : poem_id } ):
-        ret.append(result[return_field])
-
-    print(ret)
-
-
-def run_similar_poems_script(poem_file, poem_id):
+def remove_from_files(poem_file, poem_id):
     # Get file directory and name
     poem_dir, poem_filename = Path(poem_file).parent.absolute(), Path(poem_file).name
 
@@ -56,45 +47,24 @@ def remove_from_mongo(poem_id):
         # Remove the poem from poem collection
         poem_ids.pop(idx)
         poem_titles.pop(idx)
-        print(poem_ids, poem_titles)
+        print("DEBUG: " + col["collection_id"] + " collection now: ")
+        print(poem_ids)
 
         # Update the poem collection
         collections_mongo_col.find_one_and_update( { "collection_id" : col["collection_id"] }, { '$set' : { "poem_ids" : poem_ids, "poem_titles" : poem_titles } } )
 
-
-def delete_feature(poem_id):
+    # Delete features
     feat_mongo_col.delete_many( { "poem_id" : poem_id } )
 
 
-def invalidate_feature(poem_id):
-    feat_mongo_col.update_many( { "poem_id" : poem_id }, { '$set' : { "currently_featured" : False } } )
-
-
 def main(args):
-    poem_file, option, poem_id = args[1], args[2], os.path.basename(args[1]).replace('.txt', '')
-    if option == 'find':
-        # similar_poems
-        find_in_mongo(poem_id, poems_mongo_col, "similar_poems_ids", "poem_title")
-        # collections
-        find_in_mongo(poem_id, collections_mongo_col, "poem_ids", "collection_name")
-        # features
-        find_in_mongo(poem_id, feat_mongo_col, "poem_id", "featured_text")
-        print(poem_id)
-        print(poem_file)
-        return
-    elif option == 'delete':
-        run_similar_poems_script(poem_file, poem_id)
-        remove_from_mongo(poem_id)
-        feat_option = args[3]
-        if feat_option == 'delete':
-            delete_feature(poem_id)
-        else:
-            invalidate_feature(poem_id)
-        print('Completed removing poem.')
-
-    else:
-        error_exit('Command not found! Please specify what option you want for the delete poem script.')
+    poem_file, poem_id = args[1], os.path.basename(args[1]).replace('.txt', '')
+    remove_from_files(poem_file, poem_id)
+    remove_from_mongo(poem_id)
+    print('Completed removing poem: ' + poem_id)
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        error_exit('Not enough arguments. Please provide a poem file.')
     main(sys.argv)
