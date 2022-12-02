@@ -50,8 +50,7 @@ def format_details(input_file, update_top_words = True, num_words = 5):
     # check that the poem_id exists in the DB
     poem_doc = mongo_col.find_one( { "poem_id" : poem_id } )
     if poem_doc is None:
-        print('Poem id was not found: ' + poem_id)
-        return False
+        error_exit('Poem id was not found: ' + poem_id)
 
     doc = {}
     doc['poem_id'] = poem_id
