@@ -1,13 +1,3 @@
-# given a list of poem ids:
-    # for each poem id:
-        # determine the poem
-        # gather the words in that poem
-        # add to list of poem words
-    # remove stop words from list of poem words
-    # calculate frequencies of poem words
-    # sort by frequency, descending
-    # return this dictionary
-
 import os
 from pathlib import Path
 import sys
@@ -16,13 +6,7 @@ from collections import Counter
 
 from utils import error_exit
 
-import pymongo
 import config
-
-mongo_client = pymongo.MongoClient(config.CONN_STRING)
-mongo_db = mongo_client[config.MONGO_DB]
-poems_mongo_col = mongo_db[config.MONGO_POEMS_COLL]
-collections_mongo_col = mongo_db[config.MONGO_POEMCOLLS_COLL]
 
 poems_folder_path = config.POEMS_FOLDER
 
