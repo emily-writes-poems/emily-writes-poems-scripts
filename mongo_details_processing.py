@@ -73,7 +73,6 @@ def format_details(input_file, update_top_words = True, num_words = 5):
             # Split by all chars except alphanumeric, dash, apostrophe, single quote (sometimes used as apostrophe)
             # Remove newlines and filter out blanks
             poem_words = list(filter(None, re.split("[^\'’\-\w]", ("".join(file_lines[9:])).replace('\n', ' '))))
-            #print(poem_words)
 
             doc['top_words'] = get_top_words(poem_words, num_words)
 
