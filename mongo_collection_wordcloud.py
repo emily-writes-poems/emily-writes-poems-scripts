@@ -23,7 +23,6 @@ def main(collection_id):
 
 def find_collection_poems(collection_id):
     poem_ids = mongo_col.find_one( { "collection_id" : collection_id } )["poem_ids"]
-    print(poem_ids)
     return poem_ids
 
 
