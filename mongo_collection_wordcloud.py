@@ -11,7 +11,7 @@ mongo_db = mongo_client[config.MONGO_DB]
 mongo_col = mongo_db[config.MONGO_POEMCOLLS_COLL]
 
 
-def main(collection_id):
+def update_wordcloud(collection_id):
     poem_ids = find_collection_poems(collection_id)
 
     wordcloud_data = wordcloud.main(poem_ids)
@@ -33,8 +33,20 @@ def mongo_update_collection(collection_id, wordcloud_data):
         print(str(e))
 
 
+def delete_wordcloud(collection_id):
+    try:
+        mongo_col.find_one_and_update( { "collection_id" : collection_id }, { '$unset' : { "wordcloud" : "" } } )
+    except Exception as e:
+        print(str(e))
+
+
 if __name__ == '__main__':
-    if len(sys.argv) < 1:
-        error_exit("Please provide a collection id.")
+    if len(sys.argv) < 2:
+        error_exit("Please provide a command and a collection id.")
     else:
-        main(sys.argv[1])
+        if(sys.argv[1] == 'update'):
+            update_wordcloud(sys.argv[2])
+        elif(sys.argv[1] == 'delete'):
+            delete_wordcloud(sys.argv[2])
+        else:
+            error_exit("Unknown command for mongo collection wordcloud processing. Please provide either \'update\' or \'delete\'.")
