@@ -21,8 +21,8 @@ def main(poem_ids, stopwords_file = 'stopword.txt'):
 
     # Create counter
     c = Counter(collection_poem_words_filtered)
-    # Return words/freqs if freq > 2, ordered by freq desc
-    collection_top_words = [{"text": word, "value": count} for word, count in c.most_common() if count > 2]
+    # Return words/freqs if freq > 3, ordered by freq desc
+    collection_top_words = [{"text": word, "value": count} for word, count in c.most_common() if count > 3]
 
     return collection_top_words
 
