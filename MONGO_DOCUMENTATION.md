@@ -30,6 +30,8 @@ The `poem-collection-list` collection stores all poem collections, which groups 
 ### poems-list
 The `poems-list` collection stores all the text, details and statistics for poems. Each document is populated by 2 processes: one for the poem and one for poem details. Technically, a poem document does not require the details, but missing the details will make the poem page pretty empty.
 
+Additional optional process to manually select poem(s) to link, such as for related poems.
+
 #### Populated by processing poem
 * `poem_id` (required): String value to identify the poem.
 * `poem_title` (required): String value for poem title that is displayed on pages of the site.
@@ -40,8 +42,11 @@ The `poems-list` collection stores all the text, details and statistics for poem
 ##### Populated by similar poems script (called when processing poem)
 The similar poems script is run on an entire directory of poem files.
 * `similar_poems_ids` (required): Array of String values for poem ids. Must be ordered to match with the `similar_poems_titles`.
-* `similar_poems_titles` (required): Array of String values for poem ids. Must be ordered to match with the `similar_poems_ids`.
+* `similar_poems_titles` (required): Array of String values for poem titles. Must be ordered to match with the `similar_poems_ids`.
 #### Populated by processing poem details
 * `poem_behind_title` (required): String value for information about how the poem's title came to be. May include Markdown formatting.
 * `poem_behind_poem` (required): String value for information about inspiration and writing process for the poem. May include Markdown formatting.
 * `top_words`: Array of Objects mapping a word (String) to its count (Int32) in the poem.
+#### Populated by selecting poem(s) to link
+* `linked_poems_ids`: Array of String values for poem ids. Must be ordered to match with the `linked_poems_titles`.
+* `linked_poems_titles`: Array of String values for poem titles. Must be ordered to match with the `linked_poems_ids`.
