@@ -3,7 +3,6 @@ from pathlib import Path
 import sys
 
 from utils import error_exit
-import similar_poems
 
 import pymongo
 import config
@@ -22,7 +21,6 @@ def main(input_file):
                     print('DEBUG: Found file: ' + file + ' in folder ' + dirname)
                     doc = format_poem(os.path.join(dirname, file))
                     mongo_insert_poem(doc)
-        similar_poems.main(input_file)
 
     # single file
     elif os.path.isfile(input_file):
@@ -31,9 +29,7 @@ def main(input_file):
         if input_file.endswith('.txt'):
             print('DEBUG: Found file: ' + input_file)
             doc = format_poem(input_file)
-            ret = mongo_insert_poem(doc)
-            if ret == 0:
-                similar_poems.main(str(Path(input_file).parent.absolute()))
+            mongo_insert_poem(doc)
     else:
         error_exit("No appropriate file was found!")
 
