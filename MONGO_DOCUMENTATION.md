@@ -26,6 +26,7 @@ The `poem-collection-list` collection stores all poem collections, which groups 
 * `collection_summary`: Optional string value that describes the collection.
 * `poem_ids` (required): Array of String values for poem ids. Must be ordered to match with the `poem_titles`.
 * `poem_titles` (required): Array of String values for poem titles. Must be ordered to match with the `poem_ids`.
+* `wordcloud`: Document with each field mapping a word (String) to its count (Int32) across words in all poems of the collection (with a count > 2).
 
 ### poems-list
 The `poems-list` collection stores all the text, details and statistics for poems. Each document is populated by 2 processes: one for the poem and one for poem details. Technically, a poem document does not require the details, but missing the details will make the poem page pretty empty.
@@ -44,4 +45,4 @@ The similar poems script is run on an entire directory of poem files.
 #### Populated by processing poem details
 * `poem_behind_title` (required): String value for information about how the poem's title came to be. May include Markdown formatting.
 * `poem_behind_poem` (required): String value for information about inspiration and writing process for the poem. May include Markdown formatting.
-* `top_words`: Array of Objects mapping a word (String) to its count (Int32) in the poem.
+* `top_words`: Document with each field mapping a word (String) to its count (Int32) in the poem.
