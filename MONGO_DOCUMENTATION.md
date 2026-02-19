@@ -38,11 +38,10 @@ The `poems-list` collection stores all the text, details and statistics for poem
 * `poem_text` (required): Array of String values for each line of the poem. May include Markdown formatting. A value of an empty string ("") indicates a empty line, usually separating stanzas.
 * `poem_linecount` (required): Int32 value for number of lines, including empty lines (usually used to separate stanzas).
 * `poem_wordcount` (required): Int32 value for number of words.
-##### Populated by similar poems script (called when processing poem)
-The similar poems script is run on an entire directory of poem files.
-* `similar_poems_ids` (required): Array of String values for poem ids. Must be ordered to match with the `similar_poems_titles`.
-* `similar_poems_titles` (required): Array of String values for poem ids. Must be ordered to match with the `similar_poems_ids`.
 #### Populated by processing poem details
 * `poem_behind_title` (required): String value for information about how the poem's title came to be. May include Markdown formatting.
 * `poem_behind_poem` (required): String value for information about inspiration and writing process for the poem. May include Markdown formatting.
 * `top_words`: Document with each field mapping a word (String) to its count (Int32) in the poem.
+#### Populated by linking poems
+* `linked_poems_ids`: Array of String values for poem ids. Must be ordered to match with the `linked_poems_titles`.
+* `linked_poems_titles`: Array of String values for poem titles. Must be ordered to match with the `linked_poems_ids`.

@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 
 from utils import error_exit
-import similar_poems
 
 import pymongo
 import config
@@ -26,9 +25,6 @@ def remove_from_files(poem_file, poem_id):
 
     # Move file into subdirectory
     os.rename(poem_file, Path(subdir, poem_filename))
-
-    # Re-run similar_poems script
-    similar_poems.main(poem_dir)
 
 
 def remove_from_mongo(poem_id):
